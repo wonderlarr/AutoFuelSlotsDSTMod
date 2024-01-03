@@ -1,5 +1,5 @@
 -- Your mod's name! This one is simple enough, really.
-name = "Item Auto-Fuel Slots"
+name = "[Internal] Item Auto-Fuel Slots"
 
 --Description. You can put special characters here, but I'm not 100% sure how.
 description = "Manage your item's fuel like a pro, with AUTOMATION!\nThis mod adds extra slots above most refuelable items, where fuel can be stored and will be automatically consumed as needed by the item.\n\nSlots added for\n * Latern\n * Miner Hat\n * Bone Armor\n * Moggles\n * Shield of Terror\n * Magiluminescence \n * Shadow Thurible \n * Eye Mask \n * Alarming Clock"
@@ -8,13 +8,16 @@ description = "Manage your item's fuel like a pro, with AUTOMATION!\nThis mod ad
 author = "Skylarr"
 
 -- Version number, make sure to change this each time you upload via the Mod Tools, or else they get angry.
-version = "1.2.0"
+version = "1.4.0"
 
 -- The Forum URL after the ? and before the &.
 forumthread = ""
 
 -- This has been 10 for about as long as I've been modding, though I haven't been modding long.
 api_version = 10
+
+-- Slight load order bias to fix compatibility with some mods
+priority = 2
 
 -- Compatible with Don't Starve Together, obviously.
 dst_compatible = true
@@ -41,7 +44,8 @@ server_filter_tags = {
 	"Lantern Fuel Slot",
 	"Auto-Fuel",
 	"Auto Fuel",
-	"fuel slot"
+	"fuel slot",
+	"skylarr"
 }
 
 local null_options = {
@@ -51,7 +55,7 @@ local null_options = {
 configuration_options = 
 {
     {
-		name = "UI",
+		name = "General",
 		options = null_options,
 		hover = "",
 		default = 0,
@@ -70,8 +74,26 @@ configuration_options =
 		default = 1.5,
 	},
 
+	{
+		name = "rate",
+		label = "Polling Rate",
+		hover = "How often the mod will poll the fuel level of an auto-fueled item.",
+		options =
+		{
+			{description = "0.1 hz", data = 0.1},
+			{description = "0.2 hz", data = 0.2},
+			{description = "0.5 hz", data = 0.5},
+			{description = "1 hz", data = 1},
+			{description = "2 hz (Default)", data = 2},
+			{description = "5 hz", data = 5},
+			{description = "10 hz", data = 10},
+			{description = "30 hz", data = 30},
+		},
+		default = 2,
+	},
+
     {
-		name = "Item Slot Toggles",
+		name = "Items",
 		options = null_options,
 		hover = "",
 		default = 0,
@@ -177,6 +199,37 @@ configuration_options =
 		name = "pocketwatch_weapon",
 		label = "Alarming Clock",
 		hover = "Enable or disable the Alarming Clock slot added by this mod.",
+		options =
+		{
+			{description = "No", data = false},
+			{description = "Yes (Default)", data = true},
+		},
+		default = true,
+	},
+
+	{
+		name = "orangeamulet",
+		label = "Lazy Forager",
+		hover = "Enable or disable the Lazy Forager slot added by this mod.",
+		options =
+		{
+			{description = "No", data = false},
+			{description = "Yes (Default)", data = true},
+		},
+		default = true,
+	},
+
+	{
+		name = "Mod Items",
+		options = null_options,
+		hover = "",
+		default = 0,
+	},	
+
+	{
+		name = "armorvortexcloak",
+		label = "Vortex Cloak",
+		hover = "Enable or disable automatic fueling from the Vortex Cloak's backpack.",
 		options =
 		{
 			{description = "No", data = false},

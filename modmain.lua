@@ -5,6 +5,7 @@ TUNING = GLOBAL.TUNING
 
 TUNING.AFS_SLOTSIZE = GetModConfigData("slotsize")
 TUNING.AFS_SLOTBG = GetModConfigData("containerbg")
+TUNING.AFS_RATE = GetModConfigData("rate")
 
 TUNING.AFS_LANTERN = GetModConfigData("lantern")
 TUNING.AFS_MINERHAT = GetModConfigData("minerhat")
@@ -15,6 +16,8 @@ TUNING.AFS_YELLOWAMULET = GetModConfigData("yellowamulet")
 TUNING.AFS_THURIBLE = GetModConfigData("thurible")
 TUNING.AFS_EYEMASK = GetModConfigData("eyemaskhat")
 TUNING.AFS_POCKETWATCH_WEAPON = GetModConfigData("pocketwatch_weapon")
+TUNING.AFS_ORANGEAMULET = GetModConfigData("orangeamulet")
+TUNING.AFS_MOD_VORTEXCLOAK = GetModConfigData("armorvortexcloak")
 
 -- Hack the inventory bar and some playerhud code to enable us to add slots for more things than just the hand slot. 
 -- I wish Klei made this easier jeez
@@ -152,7 +155,10 @@ AddClassPostConstruct("widgets/inventorybar", function(self)
     
         self:SelectDefaultSlot()
         self.current_list = self.inv
-        self:UpdateCursor()
+
+        if not self.controller_build then
+            self:UpdateCursor()
+        end
     
         -- if self.cursor ~= nil then
         --     self.cursor:MoveToFront()
@@ -242,7 +248,7 @@ if TUNING.AFS_LANTERN then
         inst.components.container:WidgetSetup("lantern_inv")
         inst.components.container.canbeopened = false
 
-        inst.tick = inst:DoPeriodicTask(1, OnTick)
+        inst.tick = inst:DoPeriodicTask(1/TUNING.AFS_RATE, OnTick)
 
         inst:ListenForEvent("equipped", OnEquip)
         inst:ListenForEvent("unequipped", OnUnequip)
@@ -320,7 +326,7 @@ if TUNING.AFS_MINERHAT then
         inst.components.container:WidgetSetup("minerhat_inv")
         inst.components.container.canbeopened = false
 
-        inst.tick = inst:DoPeriodicTask(1, OnTick)
+        inst.tick = inst:DoPeriodicTask(1/TUNING.AFS_RATE, OnTick)
 
         inst:ListenForEvent("equipped", OnEquip)
         inst:ListenForEvent("unequipped", OnUnequip)
@@ -398,7 +404,7 @@ if TUNING.AFS_ARMORSKELETON then
         inst.components.container:WidgetSetup("armorskel_inv")
         inst.components.container.canbeopened = false
 
-        inst.tick = inst:DoPeriodicTask(1, OnTick)
+        inst.tick = inst:DoPeriodicTask(1/TUNING.AFS_RATE, OnTick)
 
         inst:ListenForEvent("equipped", OnEquip)
         inst:ListenForEvent("unequipped", OnUnequip)
@@ -476,7 +482,7 @@ if TUNING.AFS_MOLEHAT then
         inst.components.container:WidgetSetup("moggles_inv")
         inst.components.container.canbeopened = false
 
-        inst.tick = inst:DoPeriodicTask(1, OnTick)
+        inst.tick = inst:DoPeriodicTask(1/TUNING.AFS_RATE, OnTick)
 
         inst:ListenForEvent("equipped", OnEquip)
         inst:ListenForEvent("unequipped", OnUnequip)
@@ -566,7 +572,7 @@ if TUNING.AFS_SHIELDOFTERROR then
         inst.components.container:WidgetSetup("shieldofterror_inv")
         inst.components.container.canbeopened = false
 
-        inst.tick = inst:DoPeriodicTask(1, OnTick)
+        inst.tick = inst:DoPeriodicTask(1/TUNING.AFS_RATE, OnTick)
 
         inst:ListenForEvent("equipped", OnEquip)
         inst:ListenForEvent("unequipped", OnUnequip)
@@ -656,7 +662,7 @@ if TUNING.AFS_YELLOWAMULET then
         inst.components.container:WidgetSetup("yellowamulet_inv")
         inst.components.container.canbeopened = false
 
-        inst.tick = inst:DoPeriodicTask(1, OnTick)
+        inst.tick = inst:DoPeriodicTask(1/TUNING.AFS_RATE, OnTick)
 
         inst:ListenForEvent("equipped", OnEquip)
         inst:ListenForEvent("unequipped", OnUnequip)
@@ -734,7 +740,7 @@ if TUNING.AFS_THURIBLE then
         inst.components.container:WidgetSetup("thurible_inv")
         inst.components.container.canbeopened = false
 
-        inst.tick = inst:DoPeriodicTask(1, OnTick)
+        inst.tick = inst:DoPeriodicTask(1/TUNING.AFS_RATE, OnTick)
 
         inst:ListenForEvent("equipped", OnEquip)
         inst:ListenForEvent("unequipped", OnUnequip)
@@ -824,7 +830,7 @@ if TUNING.AFS_EYEMASK then
         inst.components.container:WidgetSetup("eyemaskhat_inv")
         inst.components.container.canbeopened = false
 
-        inst.tick = inst:DoPeriodicTask(1, OnTick)
+        inst.tick = inst:DoPeriodicTask(1/TUNING.AFS_RATE, OnTick)
 
         inst:ListenForEvent("equipped", OnEquip)
         inst:ListenForEvent("unequipped", OnUnequip)
@@ -904,7 +910,100 @@ if TUNING.AFS_POCKETWATCH_WEAPON then
         inst.components.container:WidgetSetup("pocketwatch_weapon_inv")
         inst.components.container.canbeopened = false
 
-        inst.tick = inst:DoPeriodicTask(1, OnTick)
+        inst.tick = inst:DoPeriodicTask(1/TUNING.AFS_RATE, OnTick)
+
+        inst:ListenForEvent("equipped", OnEquip)
+        inst:ListenForEvent("unequipped", OnUnequip)
+        inst:ListenForEvent("itemget", OnTick)
+    end)
+end
+
+-- Lazy Forager / orangeamulet
+if TUNING.AFS_ORANGEAMULET then
+    AddPrefabPostInit("orangeamulet", function(inst)
+        local function OnTick(inst)
+            -- A few custom things here since this amulet uses `finiteuses` instead of `fueled`.
+
+            -- `finiteuses` is a lot simpler of a component, so Klei uses a separate component as a sort of
+            -- addon to make it more flexible called `repairable`.
+            if inst.components.container and inst.components.container:GetItemInSlot(1) then
+                local owner = inst.components.inventoryitem.owner
+
+                -- This is fine
+                local fueltogive = 50
+                if inst.components.container:GetItemInSlot(1).prefab == "horrorfuel" then
+                    fueltogive = 100
+                end
+
+                local currentfuel = inst.components.finiteuses.current
+                local maxfuel = inst.components.finiteuses.total
+
+                if (maxfuel - currentfuel) > fueltogive then
+                    local fuelitem = inst.components.container:GetItemInSlot(1).components.stackable:Get(1)
+                    inst.components.repairable:Repair(owner, fuelitem)
+                end
+            end
+        end
+
+        local function OnEquip(inst, data)
+            local owner = data.owner
+            if inst.components.container ~= nil then
+                inst.components.container:Open(owner)
+            end
+        end
+
+        local function OnUnequip(inst, data)
+            local owner = data.owner
+            if inst.components.container ~= nil then
+                inst.components.container:Close(owner)
+            end
+        end
+
+        local invtype = "body_inv" -- vanilla inventory type
+        
+        if GLOBAL.EQUIPSLOTS.NECK ~= nil then 
+            invtype = "amulet_inv" -- if we have extra equip slots or something similar, make it work with that
+        end
+        
+        -- Start Container stuff ---------
+        local containers = GLOBAL.require("containers")
+        params = containers.params
+
+        params.orangeamulet_inv =
+        {
+            widget =
+            {
+                slotpos =
+                {
+                    GLOBAL.Vector3(0,   32 + 4,  0),
+                },
+                animbank = "ui_cookpot_1x2",
+                animbuild = "ui_cookpot_1x2",
+                pos = GLOBAL.Vector3(0, 15, 0),
+            },
+            usespecificslotsforitems = true,
+            type = invtype, -- set in a local above
+        }
+        
+        function params.orangeamulet_inv.itemtestfn(container, item, slot)
+            return item:HasTag("nightmarefuel") -- Tag added by this mod, not in vanilla.
+        end
+        -- End Container -------
+        
+
+        if not GLOBAL.TheWorld.ismastersim then
+            inst.OnEntityReplicated = function(inst) 
+                inst.replica.container:WidgetSetup("orangeamulet_inv") 
+            end
+
+            return
+        end
+
+        inst:AddComponent("container")
+        inst.components.container:WidgetSetup("orangeamulet_inv")
+        inst.components.container.canbeopened = false
+
+        inst.tick = inst:DoPeriodicTask(1/TUNING.AFS_RATE, OnTick)
 
         inst:ListenForEvent("equipped", OnEquip)
         inst:ListenForEvent("unequipped", OnUnequip)
@@ -930,6 +1029,10 @@ AddPrefabPostInit("nightmarefuel", function(inst)
     inst:AddTag("nightmarefuel")
 end)
 
+AddPrefabPostInit("horrorfuel", function(inst)
+    inst:AddTag("nightmarefuel")
+end)
+
 AddPrefabPostInit("wormlight", function(inst)
     inst:AddTag("wormfuel")
 end)
@@ -937,3 +1040,30 @@ end)
 AddPrefabPostInit("wormlight_lesser", function(inst)
     inst:AddTag("wormfuel")
 end)
+
+-- Mods
+
+-- Vortex cloak support. The item has it's own container (backpack) already, so we use slightly different code to take the first fuel 
+-- it finds inside it's already existing inv https://steamcommunity.com/sharedfiles/filedetails/?id=2579017050
+if GLOBAL.KnownModIndex:IsModEnabled("workshop-2579017050") and TUNING.AFS_MOD_VORTEXCLOAK then
+    AddPrefabPostInit("armorvortexcloak", function(inst)
+        local function OnTick(inst)
+            if inst.components.container and inst.components.container:GetItemsWithTag("nightmarefuel")[1] ~= nil then
+                local owner = inst.components.inventoryitem.owner
+
+                local fueltogive = inst.components.container:GetItemsWithTag("nightmarefuel")[1].components.fuel.fuelvalue
+                local currentfuel = inst.components.fueled.currentfuel
+                local maxfuel = inst.components.fueled.maxfuel
+
+                if (maxfuel - currentfuel) > fueltogive then
+                    local fuelitem = inst.components.container:GetItemsWithTag("nightmarefuel")[1].components.stackable:Get(1)
+                    inst.components.fueled:TakeFuelItem(fuelitem, owner)
+                end
+            end
+        end
+
+        inst.tick = inst:DoPeriodicTask(1/TUNING.AFS_RATE, OnTick)
+
+        inst:ListenForEvent("itemget", OnTick)
+    end)
+end
