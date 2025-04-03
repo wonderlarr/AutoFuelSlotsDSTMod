@@ -1043,9 +1043,15 @@ end)
 
 -- Mods
 
+-- Island adventures Bioliminescence support
+AddPrefabPostInit("bioluminescence", function(inst)
+    inst:AddTag("cavefuel")
+end)
+
 -- Vortex cloak support. The item has it's own container (backpack) already, so we use slightly different code to take the first fuel 
 -- it finds inside it's already existing inv https://steamcommunity.com/sharedfiles/filedetails/?id=2579017050
-if GLOBAL.KnownModIndex:IsModEnabled("workshop-2579017050") and TUNING.AFS_MOD_VORTEXCLOAK then
+-- GLOBAL.KnownModIndex:IsModEnabled("workshop-2579017050") and 
+if TUNING.AFS_MOD_VORTEXCLOAK then
     AddPrefabPostInit("armorvortexcloak", function(inst)
         local function OnTick(inst)
             if inst.components.container and inst.components.container:GetItemsWithTag("nightmarefuel")[1] ~= nil then

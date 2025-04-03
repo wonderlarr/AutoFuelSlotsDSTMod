@@ -8,7 +8,7 @@ description = "Manage your item's fuel like a pro, with AUTOMATION!\nThis mod ad
 author = "Skylarr"
 
 -- Version number, make sure to change this each time you upload via the Mod Tools, or else they get angry.
-version = "1.4.0"
+version = "1.4.2"
 
 -- The Forum URL after the ? and before the &.
 forumthread = ""
